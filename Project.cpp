@@ -1,12 +1,13 @@
 #include"Optimize.h"
 
 int main() {
-	
+	//for future
 	//map<int, VectorXd> building_id = vectorize(read_dat("building_id.csv"));
 	//map<int, VectorXd> description = vectorize(read_dat("description.csv"));
 	//map<int, VectorXd> display_address = vectorize(read_dat("display_address.csv"));
 	//map<int, VectorXd> listing_id = vectorize(read_dat("listing_id.csv"));
 	
+	// read data
 	map<int, double> bathrooms = (read_dat_dbl("bathrooms.csv"));
 	map<int, double> bedrooms = (read_dat_dbl("bedrooms.csv"));
 	map<int, VectorXd> created = date(read_dat("created.csv"));
@@ -18,17 +19,18 @@ int main() {
 	//map<int, VectorXd> manager_id = vectorize(read_dat("manager_id.csv"));
 
 	map<int, double> interest_level = (read_dat_dbl("interest_level.csv"));
-
+	//creat data matrices
 	int ftrsize = features[4].size();
+	int stsize = street_address[4].size();
 	int size = created[4].size() + ftrsize + 5 + street_address[4].size()/*+manager_id[4].size()*/;
-	int rows = price.size() / 20;
+	int rows = price.size() / 10;
 	MatrixXd featureMat = MatrixXd(rows, size);
 	MatrixXd answers = MatrixXd(rows, 1);
 	MatrixXd test = MatrixXd(rows, size);
 	MatrixXd testanswers = MatrixXd(rows, 1);
 	int iter = 0;
 	int titer = 0;
-	int chanse = ceil(interest_level.size() / 20);
+	int chanse = ceil(interest_level.size() / 10);
 	for (auto first : bathrooms) {
 		
 		int id = first.first;
@@ -50,11 +52,17 @@ int main() {
 		five[0] = latitude[id];
 		VectorXd six = VectorXd(1);
 		six[0] = longitude[id];
-		VectorXd seven = street_address[id];
-		//manager_id[id].resize(0, 0);
+		VectorXd seven(stsize);
+		if (street_address.find(id) == street_address.end() || street_address[id].size()!=stsize) {
+			seven = VectorXd::Zero(stsize);
+		}
+		else {
+			seven = street_address[id];
+			
+		}
 		VectorXd eight = VectorXd(1);
 		eight[0] = price[id];
-		//VectorXd nine = manager_id[id];
+		
 		
 
 		if (randInt() < chanse) {
@@ -88,7 +96,7 @@ int main() {
 		}
 	
 	}
-
+	//free memory
 	bathrooms.clear();
 	bedrooms.clear();
 	created.clear();
@@ -98,14 +106,15 @@ int main() {
 	street_address.clear();
 	price.clear();
 	//manager_id.clear();
-	
+	//train GD
 	VectorXd vars = OptimizeGD(featureMat, answers);
-
+	//test GD
 	testGD(test, testanswers, vars);
 
-	//VectorXd Nes = Nesterov(featureMat, answers);
-
-	//testGD(test, testanswers, Nes);
+	//train Nesterog AG
+	VectorXd Nes = Nesterov(featureMat, answers);
+	//test Nesterov AG
+	testGD(test, testanswers, Nes);
 
 	return 0;
 

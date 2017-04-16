@@ -15,8 +15,8 @@
 using namespace Eigen;
 using namespace std;
 
-int randInt() {
-	return (rand() * 100000) % 1000;
+int randInt() {//random
+	return (rand() * 100000) % 100;
 }
 
 map<int, VectorXd> vectorize(map<int, string> in) {

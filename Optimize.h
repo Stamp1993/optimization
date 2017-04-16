@@ -6,39 +6,40 @@ VectorXd OptimizeGD(MatrixXd inputs, MatrixXd answers) {
 	int size = inputs.cols();
 	int ans = answers.cols();
 	int nums = inputs.rows();
-
+	//variables
 	MatrixXd X = MatrixXd::Random(size, ans);
 
 	//MatrixXd sqPart = (X.transpose()*inputs)*X;
-	
+	//need to check when to 
 	double oldErr = 2000000;
 	double newErr = 1000000;
 	
 	
 	
 	MatrixXd err;
-	MatrixXd ones = VectorXd::Ones(inputs.rows(), X.cols());
-	MatrixXd dev = (inputs - ones*ones.transpose()*inputs) / nums;
-	MatrixXd varcov = dev.transpose()*dev / nums;
+	MatrixXd ones = VectorXd::Ones(inputs.rows(), X.cols());//ones vector
+	MatrixXd dev = (inputs - ones*ones.transpose()*inputs) / nums;//deviation matrix
+	MatrixXd varcov = dev.transpose()*dev / nums;//vatiance-covariance matrix
 	
-	double lr = 2*pow(10, -14);
+	double lr = 5*pow(10, -11);//learning rate
 	while (true) {
-		if (abs(oldErr - newErr) > 0.01) {
+		if (abs(oldErr - newErr) > 0.01) {//if learning had significant effect
 			cout << "inside" << endl;
-			MatrixXd lin = inputs*X;
-			MatrixXd quad = ones*(X.transpose()*(varcov)*X);
-			err = (0.5*quad + lin - answers);
+			MatrixXd lin = inputs*X;//linear part
+			MatrixXd quad = ones*(X.transpose()*(varcov)*X);//quadratic part
+			err = (0.5*quad + lin - answers);//error - purpose function
 			
 			cout << err.sum() << endl;
 			oldErr = newErr;
-			newErr = err.sum();
+			newErr = err.squaredNorm();
 			double old = X.sum();
-			X = X - lr*((err.transpose()*((ones*((varcov*X)).transpose()) + inputs)).transpose()/inputs.rows() + (X)/10);
+			//update
+			X = X - lr*(((err.transpose()/nums)*((ones*((varcov*X)).transpose()) + inputs)).transpose()/nums + (X)/5);
 			cout << "changed" << endl;
 			cout << X.sum() - old << endl;
 		}
 		else {
-			if (oldErr - newErr < 0) {
+			if (oldErr - newErr < 0) {//if jumped above minimum - decrease LR
 				lr = lr / 10;
 			}
 			else {
@@ -52,7 +53,7 @@ VectorXd OptimizeGD(MatrixXd inputs, MatrixXd answers) {
 	return X;
 }
 
-void testGD(MatrixXd inputs, MatrixXd answers, MatrixXd vars) {
+void testGD(MatrixXd inputs, MatrixXd answers, MatrixXd vars) {//test
 	int size = inputs.cols();
 	int ans = answers.cols();
 	int nums = inputs.rows();
@@ -65,8 +66,8 @@ void testGD(MatrixXd inputs, MatrixXd answers, MatrixXd vars) {
 
 	MatrixXd err = 0.5*quad + lin - answers;
 	
-	int T = 0;
-	int F = 0;
+	int T = 0;//true
+	int F = 0;//false
 	for (int i = 0; i < nums; i++) {
 		if ((err.row(i)*err.row(i)).sum() <= 0.25) {
 			T++;
@@ -113,7 +114,7 @@ VectorXd Nesterov(MatrixXd inputs, MatrixXd answers) {
 			MatrixXd lin = inputs*Vin;
 			MatrixXd quad = ones*(Vin.transpose()*(varcov)*Vin);
 			err = (0.5*quad + lin - answers);
-			MatrixXd grad = (err.transpose()*((ones*((varcov*Vin)).transpose()) + inputs)).transpose() / nums;
+			MatrixXd grad = ((err.transpose()/nums)*((ones*((varcov*Vin)).transpose()) + inputs)).transpose() / nums;
 			V = gamma*V + eta*grad;
 			cout << err.squaredNorm() << endl;
 			oldErr = newErr;
