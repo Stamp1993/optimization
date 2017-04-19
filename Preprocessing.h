@@ -1,5 +1,5 @@
 #pragma once
-#include<Eigen/Sparse>
+#include<Eigen/Dense>
 #include <fstream>
 #include <iostream>
 #include <vector>
@@ -34,7 +34,7 @@ map<int, VectorXd> vectorize(map<int, string> in) {
 	}
 	int addr;
 	for (auto j : in) {
-		VectorXd vec = VectorXd::Zero(size);
+		VectorXd vec = VectorXd::Zero(size)*0.0001;
 		addr = offs[j.second];
 		vec[addr] = 1;
 		res[j.first] = vec;
@@ -68,7 +68,7 @@ map<int, VectorXd> featurize(map<int, string> in) {
 
 	for (auto l : in) {
 
-		VectorXd vec = VectorXd::Zero(size);
+		VectorXd vec = VectorXd::Zero(size)*0.0001;
 
 		string input = l.second;
 
@@ -102,7 +102,7 @@ map<int, VectorXd> date(map<int, string> in) {
 			stringstream  ls(cell);
 			string        c;
 
-			VectorXd vec = VectorXd::Zero(3);
+			VectorXd vec = VectorXd::Zero(3)*0.0001;
 			int iter = 0;
 			while (getline(ls, c, ':'))
 			{
@@ -118,6 +118,7 @@ map<int, VectorXd> date(map<int, string> in) {
 }
 
 map<int, string> read_dat(string filename) {
+    filename = "C:\\Users\\innopolis\\Documents\\Reinforcement_Marochko\\Opt\\" + filename;
 	ifstream  data(filename);
 	map<int, string> result;
 	string line;
@@ -153,6 +154,7 @@ map<int, string> read_dat(string filename) {
 }
 
 map<int, int> read_dat_int(string filename) {
+    filename = "C:\\Users\\innopolis\\Documents\\Reinforcement_Marochko\\Opt\\" + filename;
 	ifstream  data(filename);
 	map<int, int> result;
 	string line;
@@ -180,6 +182,7 @@ map<int, int> read_dat_int(string filename) {
 }
 
 map<int, double> read_dat_dbl(string filename) {
+    filename = "C:\\Users\\innopolis\\Documents\\Reinforcement_Marochko\\Opt\\" + filename;
 	ifstream  data(filename);
 	map<int, double> result;
 	string line;

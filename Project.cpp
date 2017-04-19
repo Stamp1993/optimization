@@ -1,4 +1,4 @@
-#include"Optimize.h"
+#include"OptimizeSq.h"
 
 int main() {
 	//for future
@@ -18,26 +18,26 @@ int main() {
 	map<int, double> price = read_dat_dbl("price.csv");
 	//map<int, VectorXd> manager_id = vectorize(read_dat("manager_id.csv"));
 
-	map<int, double> interest_level = (read_dat_dbl("interest_level.csv"));
+	map<int, VectorXd> interest_level = vectorize(read_dat("interest_level.csv"));
 	//creat data matrices
 	int ftrsize = features[4].size();
 	int stsize = street_address[4].size();
 	int size = created[4].size() + ftrsize + 5 + street_address[4].size()/*+manager_id[4].size()*/;
-	int rows = price.size() / 10;
+	int rows = price.size()/5;
 	MatrixXd featureMat = MatrixXd(rows, size);
-	MatrixXd answers = MatrixXd(rows, 1);
+	MatrixXd answers = MatrixXd(rows, 3);
 	MatrixXd test = MatrixXd(rows, size);
-	MatrixXd testanswers = MatrixXd(rows, 1);
+	MatrixXd testanswers = MatrixXd(rows, 3);
 	int iter = 0;
 	int titer = 0;
-	int chanse = ceil(interest_level.size() / 10);
+	int chanse = 20;
 	for (auto first : bathrooms) {
 		
 		int id = first.first;
 		VectorXd one = VectorXd(1);
-		one[0] = first.second;
+		one[0] = first.second/5;
 		VectorXd two = VectorXd(1);
-		two[0] = bedrooms[id];
+		two[0] = bedrooms[id]/5;
 		VectorXd three = created[id];
 		//created[id].resize(0, 0);
 		VectorXd four;
@@ -49,9 +49,9 @@ int main() {
 			//features[id].resize(0, 0);
 		}
 		VectorXd five = VectorXd(1);
-		five[0] = latitude[id];
+		five[0] = latitude[id]/360;
 		VectorXd six = VectorXd(1);
-		six[0] = longitude[id];
+		six[0] = longitude[id]/360;
 		VectorXd seven(stsize);
 		if (street_address.find(id) == street_address.end() || street_address[id].size()!=stsize) {
 			seven = VectorXd::Zero(stsize);
@@ -61,7 +61,7 @@ int main() {
 			
 		}
 		VectorXd eight = VectorXd(1);
-		eight[0] = price[id];
+		eight[0] = price[id]/10000;
 		
 		
 
@@ -74,8 +74,8 @@ int main() {
 				assert(one.size() + two.size() + three.size() + four.size() + five.size() + six.size() + seven.size() + eight.size() == size);
 				vec << one, two, three, four, five, six, seven, eight/*, nine*/;
 				featureMat.row(iter) = vec;
-				VectorXd ans(1);
-				ans[0] = interest_level[id];
+				VectorXd ans(3);
+				ans = interest_level[id];
 				answers.row(iter) = ans;
 				iter++;
 			}
@@ -88,8 +88,8 @@ int main() {
 				VectorXd vec = VectorXd(size);
 				vec << one, two, three, four, five, six, seven, eight/*, nine*/;
 				test.row(titer) = vec;
-				VectorXd ans(1);
-				ans[0] = interest_level[id];
+				VectorXd ans(3);
+				ans = interest_level[id];
 				testanswers.row(titer) = ans;
 				titer++;
 			}
@@ -107,12 +107,12 @@ int main() {
 	price.clear();
 	//manager_id.clear();
 	//train GD
-	VectorXd vars = OptimizeGD(featureMat, answers);
+	MatrixXd vars = OptimizeGD(featureMat, answers);
 	//test GD
 	testGD(test, testanswers, vars);
 
-	//train Nesterog AG
-	VectorXd Nes = Nesterov(featureMat, answers);
+    //train Nesterog AG
+	MatrixXd Nes = Nesterov(featureMat, answers);
 	//test Nesterov AG
 	testGD(test, testanswers, Nes);
 
